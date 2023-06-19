@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+DIR="$HOME/.config/hypr"
+rofi_command="rofi -theme $DIR/rofi/themes/powermenu.rasi"
+uptime=$(uptime -p | sed -e 's/up //g')
+
+# Options
+shutdown=""
+reboot=""
+lock=""
+suspend=""
+logout=""
+
+# Get user confirmation 
+get_confirmation() {
+	rofi -dmenu -i \
+		 -no-fixed-num-lines \
+		 -p "Are You Sure? : " \
+		 -theme "$DIR"/rofi/themes/confirm.rasi
+}
+
+# Show message
+show_msg() {
+	rofi -theme "$DIR"/rofi/themes/askpass.rasi -e "Options  -  yes / y / no / n"
+}
+
+# Variable passed to rofi
+options="$shutdown\n$reboot\n$lock\n$suspend\n$logout"
+
+chosen="$(echo -e "$options" | $rofi_command -p "UP - $uptime" -dmenu -selected-row 2)"
+case $chosen in
+    $shutdown)
+		ans=$(get_confirmation &)
+		if [[ $ans == "yes" ]] || [[ $ans == "YES" ]] || [[ $ans == "y" ]]; then
+			systemctl poweroff
+		elif [[ $ans == "no" ]] || [[ $ans == "NO" ]] || [[ $ans == "n" ]]; then
+			exit
+        else
+			show_msg
+        fi
+        ;;
+    $reboot)
+		ans=$(get_confirmation &)
+		if [[ $ans == "yes" ]] || [[ $ans == "YES" ]] || [[ $ans == "y" ]]; then
+			systemctl reboot
+		elif [[ $ans == "no" ]] || [[ $ans == "NO" ]] || [[ $ans == "n" ]]; then
+			exit
+        else
+			show_msg
+        fi
+        ;;
+    $lock)
+        swaylock -i ~/Pictures/ALLWallpapers/wallhaven-kx16w7_5000x2347.png --clock -K
+        ;;
+    $suspend)
+			playerctl -a pause
+			swaylock -i ~/Pictures/ALLWallpapers/wallhaven-kx16w7_5000x2347.png --clock -K
+        ;;
+    $logout)
+		ans=$(get_confirmation &)
+		if [[ $ans == "yes" ]] || [[ $ans == "YES" ]] || [[ $ans == "y" ]]; then
+			i3-msg exit
+		elif [[ $ans == "no" ]] || [[ $ans == "NO" ]] || [[ $ans == "n" ]]; then
+			exit
+        else
+			show_msg
+        fi
+        ;;
+esac
